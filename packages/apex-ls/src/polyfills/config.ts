@@ -45,6 +45,7 @@ export function applyPolyfillConfig(options: BuildOptions): void {
     polyfillPaths.crypto,
     polyfillPaths.net,
     polyfillPaths.events,
+    polyfillPaths.utils,
     ...(options.inject || []),
   ];
 
