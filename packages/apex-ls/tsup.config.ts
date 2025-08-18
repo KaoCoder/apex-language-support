@@ -6,7 +6,8 @@
  * repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { defineConfig } from 'tsup';
-import * as path from 'path';
+import { BuildOptions } from 'esbuild';
+import { applyPolyfillConfig } from './src/polyfills/config';
 
 export default defineConfig([
   // Main package build (CJS + ESM)
@@ -44,7 +45,7 @@ export default defineConfig([
       '@salesforce/apex-lsp-shared',
       '@salesforce/apex-lsp-compliant-services',
     ],
-    esbuildOptions(options) {
+    esbuildOptions(options: BuildOptions) {
       options.platform = 'browser';
       options.define = {
         ...options.define,
@@ -92,29 +93,11 @@ export default defineConfig([
       '@salesforce/apex-lsp-shared',
       '@salesforce/apex-lsp-compliant-services',
     ],
-    esbuildOptions(options) {
+    esbuildOptions(options: BuildOptions) {
       options.platform = 'browser';
-      options.define = {
-        ...options.define,
-        'process.env.NODE_ENV': '"browser"',
-        'global': 'globalThis',
-      };
-      
-      options.alias = {
-        ...options.alias,
-        'assert': 'assert',
-        'crypto': 'crypto-browserify',
-        'path': 'path-browserify',
-        'stream': 'stream-browserify',
-        'util': 'util',
-        'buffer': 'buffer',
-        'process': 'process/browser',
-        'events': 'events',
-        'fs': path.resolve(__dirname, './src/polyfills/fs-polyfill.ts'),
-      };
-      
-      options.inject = options.inject || [];
-      
+      // Apply polyfill configuration
+      applyPolyfillConfig(options);
+
       options.minify = false;
       options.minifyIdentifiers = false;
       options.minifySyntax = false;
