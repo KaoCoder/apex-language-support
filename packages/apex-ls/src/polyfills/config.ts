@@ -14,6 +14,7 @@ const polyfillsDir = path.resolve(__dirname);
 export const polyfillPaths = {
   assert: path.resolve(polyfillsDir, 'assert-polyfill.ts'),
   buffer: path.resolve(polyfillsDir, 'buffer-polyfill.ts'),
+  child_process: path.resolve(polyfillsDir, 'child_process-polyfill.ts'),
   crypto: path.resolve(polyfillsDir, 'crypto-polyfill.ts'),
   events: path.resolve(polyfillsDir, 'events-polyfill.ts'),
   fs: path.resolve(polyfillsDir, 'fs-polyfill.ts'),
@@ -21,7 +22,8 @@ export const polyfillPaths = {
   os: path.resolve(polyfillsDir, 'os-polyfill.ts'),
   path: path.resolve(polyfillsDir, 'path-polyfill.ts'),
   process: path.resolve(polyfillsDir, 'process-polyfill.ts'),
-  utils: path.resolve(polyfillsDir, 'utils-polyfill.ts'),
+  url: path.resolve(polyfillsDir, 'url-polyfill.ts'),
+  util: path.resolve(polyfillsDir, 'utils-polyfill.ts'),
 };
 
 export function applyPolyfillConfig(options: BuildOptions): void {
@@ -29,6 +31,7 @@ export function applyPolyfillConfig(options: BuildOptions): void {
     ...options.alias,
     assert: polyfillPaths.assert,
     buffer: polyfillPaths.buffer,
+    child_process: polyfillPaths.child_process,
     crypto: polyfillPaths.crypto,
     events: polyfillPaths.events,
     fs: polyfillPaths.fs,
@@ -37,7 +40,8 @@ export function applyPolyfillConfig(options: BuildOptions): void {
     path: polyfillPaths.path,
     process: polyfillPaths.process,
     stream: 'stream-browserify',
-    util: polyfillPaths.utils, // Map Node's 'util' module to our polyfill
+    url: polyfillPaths.url, // Map Node's 'url' module to our polyfill
+    util: polyfillPaths.util, // Map Node's 'util' module to our polyfill
     // Force all vscode packages to use browser versions
     'vscode-languageserver/lib/node/main': 'vscode-languageserver/lib/browser/main',
     'vscode-languageserver/lib/node/files': 'vscode-languageserver/lib/browser/main',
@@ -52,13 +56,15 @@ export function applyPolyfillConfig(options: BuildOptions): void {
   options.inject = [
     polyfillPaths.assert,
     polyfillPaths.buffer,
+    polyfillPaths.child_process,
     polyfillPaths.path,
     polyfillPaths.os,
     polyfillPaths.crypto,
     polyfillPaths.net,
     polyfillPaths.events,
     polyfillPaths.process,
-    polyfillPaths.utils,
+    polyfillPaths.url,
+    polyfillPaths.util,
     ...(options.inject || []),
   ];
 
@@ -68,6 +74,7 @@ export function applyPolyfillConfig(options: BuildOptions): void {
     global: 'globalThis',
     'global.Buffer': 'Buffer',
     'global.process': 'process',
+    'global.url': 'url',
     'global.util': 'util',
   };
 }

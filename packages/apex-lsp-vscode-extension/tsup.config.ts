@@ -7,8 +7,7 @@
  */
 
 import { defineConfig, Options } from 'tsup';
-import { Plugin } from 'esbuild';
-
+import path from 'path';
 
 export default defineConfig((options: Options) => {
   return {
@@ -39,33 +38,31 @@ export default defineConfig((options: Options) => {
       // Configure for browser environment
       options.conditions = ['browser', 'import', 'module', 'default'];
       options.mainFields = ['browser', 'module', 'main'];
-      
-      // Inject polyfills globally
-      options.inject = ['./src/polyfills.js'];
-      
-      // Add polyfill aliases for Node.js modules that don't work in browsers
+
+      // Apply centralized polyfill configuration
+      applyPolyfillConfig(options);
+
+      // Add specific aliases for vscode language server packages to use browser versions
+      // (these are extension-specific and not covered by the general polyfill config)
       options.alias = {
         ...options.alias,
-        // Add polyfills for Node.js built-in modules using npm browser-compatible packages
-        'util': 'util',
-        'buffer': 'buffer',
-        'crypto': 'crypto-browserify',
-        'events': 'events',
-        'fs': 'memfs',
-        'path': 'path-browserify',
-        'stream': 'stream-browserify',
-        'assert': 'assert',
+        // Nested JSONRPC from protocol package
+        'vscode-languageserver-protocol/node_modules/vscode-jsonrpc/lib/node/main': 'vscode-jsonrpc/lib/browser/main',
+        'vscode-languageserver-protocol/node_modules/vscode-jsonrpc/lib/node/ril': 'vscode-jsonrpc/lib/browser/ril',
+        'vscode-languageserver-protocol/node_modules/vscode-jsonrpc/node': 'vscode-jsonrpc/browser',
+        // VSCode Language Server Protocol aliases
+        'vscode-languageserver-protocol/lib/node/main':
+          'vscode-languageserver-protocol/lib/browser/main',
+        'vscode-languageserver-protocol/lib/node':
+          'vscode-languageserver-protocol/lib/browser',
+        'vscode-languageserver-protocol/node':
+          'vscode-languageserver-protocol/browser',
+        // VSCode Language Client aliases
+        'vscode-languageclient/node': 'vscode-languageclient/browser',
       };
-      
-      options.define = {
-        ...options.define,
-        'process.env.NODE_ENV': '"browser"',
-        'global': 'globalThis',
-        'global.Buffer': 'Buffer',
-      };
+
     },
-    // Copy worker files, manifest, and fix paths/exports after build
-    onSuccess:
-      'npm run copy:worker && npm run copy:manifest && npm run fix:paths && npm run fix:exports && npm run fix:util',
+    // Run consolidated post-build script
+    onSuccess: 'node scripts/post-build.js',
   };
 });
