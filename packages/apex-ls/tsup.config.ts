@@ -28,7 +28,6 @@ export default defineConfig([
     external: [
       'vscode-languageserver',
       'vscode-languageserver/node',
-      'vscode-languageserver-textdocument',
       'vscode-languageserver-protocol',
       'vscode-jsonrpc',
       'vscode-jsonrpc/node',
@@ -44,9 +43,16 @@ export default defineConfig([
     noExternal: [
       '@salesforce/apex-lsp-shared',
       '@salesforce/apex-lsp-compliant-services',
+      'vscode-languageserver-textdocument',
     ],
     esbuildOptions(options: BuildOptions) {
       options.platform = 'browser';
+      options.conditions = ['browser', 'import', 'module', 'default'];
+      options.mainFields = ['browser', 'module', 'main'];
+
+      // Apply polyfill configuration to main build as well
+      applyPolyfillConfig(options);
+
       options.define = {
         ...options.define,
         'process.env.NODE_ENV': '"browser"',
@@ -76,7 +82,6 @@ export default defineConfig([
     external: [
       'vscode-languageserver',
       'vscode-languageserver/node',
-      'vscode-languageserver-textdocument',
       'vscode-languageserver-protocol',
       'vscode-jsonrpc',
       'vscode-jsonrpc/node',
@@ -92,6 +97,7 @@ export default defineConfig([
     noExternal: [
       '@salesforce/apex-lsp-shared',
       '@salesforce/apex-lsp-compliant-services',
+      'vscode-languageserver-textdocument',
     ],
     esbuildOptions(options: BuildOptions) {
       options.platform = 'browser';

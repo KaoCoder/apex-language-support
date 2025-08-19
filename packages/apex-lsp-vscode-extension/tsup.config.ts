@@ -7,13 +7,10 @@
  */
 
 import { defineConfig, Options } from 'tsup';
+import { Plugin } from 'esbuild';
+
 
 export default defineConfig((options: Options) => {
-  // Always apply polyfill configuration for web compatibility
-  // This ensures web builds work properly regardless of environment variables
-  const { applyPolyfillConfig } = require('../apex-ls/src/polyfills/config');
-  applyPolyfillConfig(options);
-
   return {
     entry: ['out/extension.js', 'out/server.js'],
     format: ['cjs', 'esm'],
@@ -29,23 +26,46 @@ export default defineConfig((options: Options) => {
       '@salesforce/apex-lsp-custom-services',
       '@salesforce/apex-lsp-parser-ast',
       '@salesforce/apex-lsp-shared',
+      'vscode-languageserver-textdocument',
+      'vscode-languageserver',
+      'vscode-languageserver-protocol',
+      'vscode-jsonrpc',
     ],
     // Ensure browser-compatible versions of packages are used
     esbuildOptions(options) {
-      // Use neutral platform but prioritize browser fields
+      // Import polyfill configuration from unified apex-ls package
+      const { applyPolyfillConfig } = require('../apex-ls/src/polyfills/config');
+
+      // Configure for browser environment
       options.conditions = ['browser', 'import', 'module', 'default'];
       options.mainFields = ['browser', 'module', 'main'];
-      // Add alias to specifically target the problematic vscode-jsonrpc imports
+      
+      // Inject polyfills globally
+      options.inject = ['./src/polyfills.js'];
+      
+      // Add polyfill aliases for Node.js modules that don't work in browsers
       options.alias = {
-        'vscode-jsonrpc/lib/node/main': 'vscode-jsonrpc/lib/browser/main',
-        'vscode-jsonrpc/lib/node/ril': 'vscode-jsonrpc/lib/browser/ril',
+        ...options.alias,
+        // Add polyfills for Node.js built-in modules using npm browser-compatible packages
+        'util': 'util',
+        'buffer': 'buffer',
+        'crypto': 'crypto-browserify',
+        'events': 'events',
+        'fs': 'memfs',
+        'path': 'path-browserify',
+        'stream': 'stream-browserify',
+        'assert': 'assert',
       };
+      
       options.define = {
         ...options.define,
+        'process.env.NODE_ENV': '"browser"',
         'global': 'globalThis',
+        'global.Buffer': 'Buffer',
       };
     },
     // Copy worker files, manifest, and fix paths/exports after build
-    onSuccess: 'npm run copy:worker && npm run copy:manifest && npm run fix:paths && npm run fix:exports',
+    onSuccess:
+      'npm run copy:worker && npm run copy:manifest && npm run fix:paths && npm run fix:exports && npm run fix:util',
   };
 });

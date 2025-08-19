@@ -53,7 +53,7 @@ const handleStart = async (context: vscode.ExtensionContext): Promise<void> => {
  */
 export function activate(context: vscode.ExtensionContext): void {
   console.log('🚀 [APEX-EXT] Extension activation started');
-  
+
   // Initialize simple extension logging
   initializeExtensionLogging(context);
 
@@ -109,10 +109,10 @@ export function activate(context: vscode.ExtensionContext): void {
   logToOutputChannel('Apex Language Server extension is now active!', 'info');
 
   // Start the language server
-  handleStart(context).catch(error => {
+  handleStart(context).catch((error) => {
     console.error('❌ [APEX-EXT] Failed to start language server:', error);
   });
-  
+
   console.log('✅ [APEX-EXT] Extension activation completed');
 }
 
